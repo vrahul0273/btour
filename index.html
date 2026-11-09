@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Birthday World Tour</title>
+<title>BADDIE WORLD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Monoton&family=Bodoni+Moda:ital,wght@0,400;0,600;1,400;1,600&family=Syne:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -124,8 +124,8 @@
   }
   .hero .who {
     font-family: var(--serif); font-style: italic; font-weight: 400;
-    font-size: clamp(34px, 9vw, 76px); margin: 18px 0 8px; color: var(--cyan);
-    text-shadow: 0 0 10px rgba(0,240,255,.8), 0 0 36px rgba(0,240,255,.5);
+    font-size: clamp(34px, 9vw, 76px); margin: 18px 0 8px; color: #e9feff;
+    text-shadow: 0 0 4px #fff, 0 0 12px var(--cyan), 0 0 30px var(--cyan), 0 0 64px var(--cyan), 0 0 110px rgba(0,240,255,.6);
   }
   .hero .tag { color: var(--dim); max-width: 34ch; margin: 0 auto 34px; font-size: 18px; }
   .hero .scroll { color: var(--dim); font-size: 14px; margin-top: 22px; }
@@ -213,7 +213,7 @@
 <div id="gate">
   <div class="ticket">
     <p class="admit">Admit one, backstage</p>
-    <h1>World Tour</h1>
+    <h1>BADDIE WORLD</h1>
     <p>A surprise is waiting. Turn your sound on, then say the password.</p>
     <input id="pw" class="pw" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password" aria-label="Password">
     <p class="err" id="err" role="alert"></p>
@@ -231,7 +231,7 @@
 <header class="hero">
   <div>
     <h2><span>Happy</span><br><span class="flick">Birth</span><span>day</span></h2>
-    <p class="who" id="who">Superstar</p>
+    <p class="who" id="who">Tisha</p>
     <p class="tag">Your world tour has a few stops. Scroll down and take a look.</p>
     <p class="scroll" aria-hidden="true">↓</p>
   </div>
@@ -299,15 +299,16 @@
 
 <script>
 /* ===== Edit these ===== */
-var DEFAULT_NAME = "Superstar";           // or share the link ending in #Her-Name
-var SIGNED_BY = "Your biggest fan";
+var DEFAULT_NAME = "Tisha";           // or share the link ending in #Her-Name
+var SIGNED_BY = "Kajol and Rahul";
 var PARAGRAPHS = [
-  "Happy birthday, {name}.",
-  "Somewhere between a NIFT sketchbook, a thousand event run-sheets and a very glittery Nykaaland, you became the person who makes every room better.",
-  "You see colour before anyone else sees the room. You plan the chaos and then dance in it. You turn a playlist into a personality.",
-  "SoHo nights, last-minute briefs and laughing until the music stops are my favourite chapters of your tour.",
-  "This year: bigger stage, louder encore. Whatever you launch next, I’m in the front row.",
-  "Now go be unreasonably fabulous."
+  "Happy birthday, {name}! Today the world is lucky to have you.",
+  "You are literally the main character. Your energy is immaculate, your vibe is unmatched and your fits are always giving.",
+  "Hope your day is all cake, good music, zero stress and way too many photos. You ate this year, and next year you’re about to eat even harder.",
+  "May your wifi be strong, your playlists be fire and your haters be irrelevant. Manifesting big wins, soft days and good vibes only.",
+  "Thank you for being iconic, for the laughs, and for always being the one who makes it fun.",
+  "Whatever comes next, good days or chaotic ones, we are there for you. Always.",
+  "No cap, you deserve everything good coming your way. Now go slay your day, queen."
 ];
 
 /* ===== Name from link (#Her-Name) ===== */
