@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Birthday World Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Bodoni+Moda:ital,wght@0,400;0,600;1,400;1,600&family=Syne:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050507;
+    --panel: #0d0b14;
+    --ink: #f3eefc;
+    --dim: #a79fbd;
+    --pink: #ff2e97;
+    --cyan: #00f0ff;
+    --violet: #9d4edd;
+    --gold: #ffc857;
+    --display: "Monoton", "Impact", sans-serif;
+    --serif: "Bodoni Moda", "Didot", "Georgia", serif;
+    --sans: "Syne", "Helvetica Neue", Arial, sans-serif;
+    color-scheme: dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 17px; line-height: 1.6;
+    overflow-x: hidden;
+  }
+  body::before { /* faint floor grid */
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgba(157,78,221,.22), transparent 70%),
+      radial-gradient(40% 40% at 90% 100%, rgba(255,46,151,.14), transparent 70%),
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 56px;
+  }
+  main, header, footer, section { position: relative; z-index: 1; }
+  :focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+  /* ---------- gate ---------- */
+  #gate {
+    position: fixed; inset: 0; z-index: 50; background: var(--bg);
+    display: grid; place-items: center; padding: 24px; text-align: center;
+    transition: opacity .9s ease, visibility .9s;
+  }
+  #gate.gone { opacity: 0; visibility: hidden; }
+  .ticket {
+    width: min(440px, 100%); padding: 40px 28px 34px;
+    border: 2px solid var(--pink); border-radius: 18px;
+    box-shadow: 0 0 18px rgba(255,46,151,.55), inset 0 0 22px rgba(255,46,151,.25);
+    background: var(--panel); position: relative;
+  }
+  .ticket::before, .ticket::after {
+    content: ""; position: absolute; top: 50%; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--pink); transform: translateY(-50%);
+  }
+  .ticket::before { left: -14px; clip-path: inset(0 0 0 50%); }
+  .ticket::after { right: -14px; clip-path: inset(0 50% 0 0); }
+  .admit { font-family: var(--serif); font-style: italic; color: var(--gold); font-size: 20px; margin: 0 0 6px; }
+  .ticket h1 {
+    font-family: var(--display); font-weight: 400; font-size: clamp(38px, 11vw, 56px);
+    line-height: 1.05; margin: 0 0 12px; color: #fff;
+    text-shadow: 0 0 6px var(--cyan), 0 0 22px var(--cyan), 0 0 48px var(--cyan);
+  }
+  .ticket p { color: var(--dim); margin: 0 0 26px; }
+  .btn {
+    font: 700 16px/1 var(--sans); color: #fff; background: transparent; cursor: pointer;
+    border: 2px solid var(--cyan); border-radius: 999px; padding: 15px 28px;
+    box-shadow: 0 0 14px rgba(0,240,255,.6), inset 0 0 12px rgba(0,240,255,.35);
+    text-shadow: 0 0 8px var(--cyan); transition: transform .15s, box-shadow .2s, background .2s;
+  }
+  .btn:hover { background: rgba(0,240,255,.12); box-shadow: 0 0 26px rgba(0,240,255,.9), inset 0 0 16px rgba(0,240,255,.5); }
+  .btn:active { transform: scale(.97); }
+  .btn.pink { border-color: var(--pink); text-shadow: 0 0 8px var(--pink);
+    box-shadow: 0 0 14px rgba(255,46,151,.6), inset 0 0 12px rgba(255,46,151,.35); }
+  .btn.pink:hover { background: rgba(255,46,151,.12); box-shadow: 0 0 26px rgba(255,46,151,.9), inset 0 0 16px rgba(255,46,151,.5); }
+
+  .pw {
+    width: 100%; margin: 0 0 12px; padding: 14px 16px; text-align: center;
+    font: 600 18px/1 var(--sans); color: #fff; background: #07050d;
+    border: 2px solid var(--violet); border-radius: 12px; outline: none;
+    box-shadow: inset 0 0 14px rgba(157,78,221,.35);
+  }
+  .pw:focus { border-color: var(--cyan); box-shadow: 0 0 14px rgba(0,240,255,.5), inset 0 0 14px rgba(0,240,255,.25); }
+  .pw::placeholder { color: var(--dim); font-weight: 400; }
+  .ticket p.err { color: var(--pink); min-height: 1.6em; margin: 0 0 12px; font-weight: 700; text-shadow: 0 0 8px rgba(255,46,151,.6); }
+  .ticket p.hintrow { margin: 14px 0 0; }
+  .ticket p.hint { margin: 10px 0 0; color: var(--gold); font-family: var(--serif); font-style: italic; }
+  .ticket.shake { animation: shake .45s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-12px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-8px); } 80% { transform: translateX(6px); } }
+  @media (prefers-reduced-motion: reduce) { .ticket.shake { animation: none; } }
+
+  /* ---------- music toggle ---------- */
+  #mute {
+    position: fixed; right: 14px; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 40;
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: rgba(13,11,20,.8); backdrop-filter: blur(8px);
+    border: 1.5px solid var(--violet); border-radius: 999px; color: var(--ink);
+    font: 600 14px/1 var(--sans); cursor: pointer; box-shadow: 0 0 12px rgba(157,78,221,.5);
+  }
+  .eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; }
+  .eq i { width: 3px; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); height: 4px; border-radius: 2px; }
+  body.playing .eq i { animation: bounce .8s ease-in-out infinite; }
+  body.playing .eq i:nth-child(2) { animation-delay: -.3s; }
+  body.playing .eq i:nth-child(3) { animation-delay: -.6s; }
+  body.playing .eq i:nth-child(4) { animation-delay: -.15s; }
+  @keyframes bounce { 0%,100% { height: 4px; } 50% { height: 16px; } }
+
+  /* ---------- hero ---------- */
+  header.hero { min-height: 100svh; display: grid; place-items: center; text-align: center; padding: 90px 22px 70px; }
+  .hero h2 {
+    font-family: var(--display); font-weight: 400; margin: 0;
+    font-size: clamp(46px, 13vw, 124px); line-height: 1; letter-spacing: .01em;
+    color: #eaffe6; text-shadow: 0 0 4px #b6ffa8, 0 0 14px #39ff14, 0 0 34px #39ff14, 0 0 80px #1fd10a;
+  }
+  .hero h2 span.flick { animation: flicker 5s infinite; display: inline-block; }
+  @keyframes flicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: .25; }
+  }
+  .hero .who {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: clamp(34px, 9vw, 76px); margin: 18px 0 8px; color: var(--cyan);
+    text-shadow: 0 0 10px rgba(0,240,255,.8), 0 0 36px rgba(0,240,255,.5);
+  }
+  .hero .tag { color: var(--dim); max-width: 34ch; margin: 0 auto 34px; font-size: 18px; }
+  .hero .scroll { color: var(--dim); font-size: 14px; margin-top: 22px; }
+
+  /* ---------- tour stops ---------- */
+  section.wrap { width: min(760px, 100% - 40px); margin: 0 auto; padding: 70px 0; }
+  .sec-title {
+    font-family: var(--serif); font-weight: 600; font-size: clamp(30px, 6vw, 46px);
+    margin: 0 0 8px; line-height: 1.1;
+  }
+  .sec-sub { color: var(--dim); margin: 0 0 40px; }
+  .stops { list-style: none; margin: 0; padding: 0 0 0 34px; position: relative; }
+  .stops::before {
+    content: ""; position: absolute; left: 8px; top: 6px; bottom: 6px; width: 2px;
+    background: repeating-linear-gradient(to bottom, var(--pink) 0 8px, transparent 8px 16px);
+    filter: drop-shadow(0 0 4px var(--pink));
+  }
+  .stop { position: relative; margin-bottom: 26px; padding: 22px 24px; background: var(--panel);
+    border: 1.5px solid rgba(157,78,221,.6); border-radius: 14px; }
+  .stop::before {
+    content: ""; position: absolute; left: -34px; top: 28px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--cyan); box-shadow: 0 0 12px var(--cyan);
+  }
+  .stop:nth-child(even) { border-color: rgba(0,240,255,.55); }
+  .stop:nth-child(even)::before { border-color: var(--pink); box-shadow: 0 0 12px var(--pink); }
+  .stop h3 { margin: 0 0 2px; font-family: var(--serif); font-size: 26px; font-weight: 600; }
+  .stop .where { color: var(--gold); font-style: italic; font-family: var(--serif); margin: 0 0 8px; }
+  .stop p:last-child { margin: 0; color: #d8d1ea; max-width: 56ch; }
+
+  /* ---------- secret message ---------- */
+  .pass-zone { text-align: center; }
+  #cover {
+    display: none; margin-top: 34px; text-align: left; padding: 34px 28px 38px;
+    border: 2px solid var(--gold); border-radius: 6px; background: #0a0810;
+    box-shadow: 0 0 24px rgba(255,200,87,.35), inset 0 0 30px rgba(255,200,87,.07);
+  }
+  #cover.show { display: block; animation: rise .9s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+  .masthead { font-family: var(--display); font-size: clamp(26px, 7vw, 44px); line-height: 1.1; margin: 0 0 4px;
+    color: #fff; text-shadow: 0 0 6px var(--gold), 0 0 24px var(--gold); }
+  .issue { color: var(--gold); font-family: var(--serif); font-style: italic; margin: 0 0 26px; border-bottom: 1px solid rgba(255,200,87,.4); padding-bottom: 14px; }
+  #msg p { font-family: var(--serif); font-size: clamp(19px, 3.6vw, 23px); line-height: 1.65; margin: 0 0 18px; min-height: 1.65em; }
+  #msg p.sign { color: var(--pink); font-style: italic; text-shadow: 0 0 10px rgba(255,46,151,.6); }
+  .caret::after { content: "▌"; color: var(--cyan); animation: blink 1s steps(1) infinite; margin-left: 2px; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .skip { background: none; border: 0; color: var(--dim); text-decoration: underline; cursor: pointer; font: inherit; font-size: 14px; margin-top: 6px; }
+
+  /* ---------- coupons ---------- */
+  .coupons { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
+  .coupon {
+    text-align: left; font: inherit; color: var(--ink); cursor: pointer; padding: 22px 20px; min-height: 150px;
+    background: var(--panel); border: 2px dashed var(--cyan); border-radius: 12px;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .coupon:hover { transform: translateY(-3px) rotate(-.6deg); box-shadow: 0 0 20px rgba(0,240,255,.4); }
+  .coupon b { display: block; font-family: var(--serif); font-size: 22px; line-height: 1.2; margin-bottom: 8px; }
+  .coupon small { color: var(--dim); font-size: 14px; }
+  .coupon.used { border-color: var(--pink); border-style: solid; box-shadow: 0 0 20px rgba(255,46,151,.5); }
+  .coupon.used small { color: var(--pink); font-weight: 700; }
+  .coupon .price {
+    display: inline-block; margin: 0 0 12px; padding: 4px 12px; border-radius: 999px;
+    border: 1.5px solid var(--gold); color: var(--gold); font-size: 13px; font-weight: 700;
+    text-shadow: 0 0 8px rgba(255,200,87,.6); box-shadow: 0 0 10px rgba(255,200,87,.3);
+  }
+  .coupon { display: block; width: 100%; }
+  .coupon small { display: block; }
+
+  /* ---------- encore ---------- */
+  footer.encore { text-align: center; padding: 60px 22px calc(110px + env(safe-area-inset-bottom, 0px)); }
+  footer .big { font-family: var(--display); font-size: clamp(34px, 9vw, 70px); margin: 0 0 24px; color: #fff;
+    text-shadow: 0 0 6px var(--cyan), 0 0 26px var(--cyan), 0 0 60px var(--violet); }
+  footer .after { margin-top: 22px; font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--gold); min-height: 1.6em; }
+  canvas#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .hero h2 span.flick, body.playing .eq i, .caret::after { animation: none; }
+    #cover.show { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Gate: a tap is needed before browsers allow sound -->
+<div id="gate">
+  <div class="ticket">
+    <p class="admit">Admit one, backstage</p>
+    <h1>World Tour</h1>
+    <p>A surprise is waiting. Turn your sound on, then say the password.</p>
+    <input id="pw" class="pw" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password" aria-label="Password">
+    <p class="err" id="err" role="alert"></p>
+    <button class="btn" id="enter" type="button">Enter backstage</button>
+    <p class="hintrow"><button class="skip" id="hintBtn" type="button">Need a hint?</button></p>
+    <div id="hints" aria-live="polite"></div>
+  </div>
+</div>
+
+<button id="mute" type="button" aria-label="Toggle music" hidden>
+  <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <span id="muteLabel">Music on</span>
+</button>
+
+<header class="hero">
+  <div>
+    <h2><span>Happy</span><br><span class="flick">Birth</span><span>day</span></h2>
+    <p class="who" id="who">Superstar</p>
+    <p class="tag">Your world tour has a few stops. Scroll down and take a look.</p>
+    <p class="scroll" aria-hidden="true">↓</p>
+  </div>
+</header>
+
+<main>
+  <section class="wrap" aria-labelledby="setlist">
+    <h2 class="sec-title" id="setlist">The setlist</h2>
+    <p class="sec-sub">Four stops that made you who you are tonight.</p>
+    <ol class="stops">
+      <li class="stop">
+        <h3>NIFT</h3>
+        <p class="where">Where it started</p>
+        <p>Sketchbooks, sleepless submissions and an eye that never switches off. Your taste is the reason everything you touch looks intentional.</p>
+      </li>
+      <li class="stop">
+        <h3>Event management</h3>
+        <p class="where">Where you learned to run the show</p>
+        <p>Run-sheets, a thousand moving parts and a deadline in every direction, and you still look like the calmest person in the room.</p>
+      </li>
+      <li class="stop">
+        <h3>Nykaaland</h3>
+        <p class="where">Where glitter met strategy</p>
+        <p>Colour, crowds, creators and chaos. You belong wherever beauty meets a big stage.</p>
+      </li>
+      <li class="stop">
+        <h3>SoHo</h3>
+        <p class="where">Where the night belongs to you</p>
+        <p>Good music, better company, and the kind of laughter that outlasts the last song.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="wrap pass-zone" aria-labelledby="pass">
+    <h2 class="sec-title" id="pass">Backstage pass</h2>
+    <p class="sec-sub">One more thing, just for you.</p>
+    <button class="btn pink" id="openPass" type="button">Open the pass</button>
+
+    <article id="cover" aria-live="polite">
+      <h3 class="masthead" id="mast">Happy Birthday</h3>
+      <p class="issue">The Birthday Issue, cover story</p>
+      <div id="msg"></div>
+      <button class="skip" id="skip" type="button">Show the full message</button>
+    </article>
+  </section>
+
+  <section class="wrap" aria-labelledby="merch">
+    <h2 class="sec-title" id="merch">The merch table</h2>
+    <p class="sec-sub">Everything on the table is free today. Tap an item to claim it.</p>
+    <div class="coupons">
+      <button class="coupon" type="button"><b>One rant session, no advice</b><span class="price">Free, for the birthday girl</span><small>Tap to redeem</small></button>
+      <button class="coupon" type="button"><b>Limited edition hug</b><span class="price">Free, for the birthday girl</span><small>Tap to redeem</small></button>
+      <button class="coupon" type="button"><b>One dessert date, you pick the place</b><span class="price">Free, for the birthday girl</span><small>Tap to redeem</small></button>
+    </div>
+  </section>
+</main>
+
+<footer class="encore">
+  <p class="big">Encore?</p>
+  <button class="btn" id="encore" type="button">Yes, one more</button>
+  <p class="after" id="after"></p>
+</footer>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script>
+/* ===== Edit these ===== */
+var DEFAULT_NAME = "Superstar";           // or share the link ending in #Her-Name
+var SIGNED_BY = "Your biggest fan";
+var PARAGRAPHS = [
+  "Happy birthday, {name}.",
+  "Somewhere between a NIFT sketchbook, a thousand event run-sheets and a very glittery Nykaaland, you became the person who makes every room better.",
+  "You see colour before anyone else sees the room. You plan the chaos and then dance in it. You turn a playlist into a personality.",
+  "SoHo nights, last-minute briefs and laughing until the music stops are my favourite chapters of your tour.",
+  "This year: bigger stage, louder encore. Whatever you launch next, I’m in the front row.",
+  "Now go be unreasonably fabulous."
+];
+
+/* ===== Name from link (#Her-Name) ===== */
+function readName() {
+  var h = (location.hash || "").replace(/^#/, "");
+  try { h = decodeURIComponent(h); } catch (e) {}
+  h = h.replace(/-/g, " ").replace(/[^\p{L}\p{N} ]/gu, "").trim();
+  return h || DEFAULT_NAME;
+}
+var NAME = readName();
+document.getElementById("who").textContent = NAME;
+document.getElementById("mast").textContent = "Happy Birthday, " + NAME;
+window.addEventListener("hashchange", function () {
+  NAME = readName();
+  document.getElementById("who").textContent = NAME;
+  document.getElementById("mast").textContent = "Happy Birthday, " + NAME;
+});
+
+/* ===== Music: synthesised party loop (no files needed) ===== */
+var ac = null, master = null, timer = null, step = 0, nextT = 0, noiseBuf = null, on = false;
+var BPM = 110, SPS = 60 / BPM / 4;
+var CHORDS = [[57,60,64],[53,57,60],[55,60,64],[55,59,62]];
+var BASS = [45,41,48,43];
+function mtof(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+function tone(type, freq, t, dur, vol, cutoff) {
+  var o = ac.createOscillator(), g = ac.createGain(), f = ac.createBiquadFilter();
+  o.type = type; o.frequency.value = freq;
+  f.type = "lowpass"; f.frequency.value = cutoff || 2400;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(f); f.connect(g); g.connect(master);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+function kick(t) {
+  var o = ac.createOscillator(), g = ac.createGain();
+  o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
+  g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.3);
+}
+function noise(t, dur, vol, hp) {
+  var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = noiseBuf; f.type = "highpass"; f.frequency.value = hp;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.02);
+}
+function playStep(s, t) {
+  var bar = Math.floor(s / 16) % 4, k = s % 16, ch = CHORDS[bar];
+  if (k % 4 === 0) kick(t);
+  if (k === 4 || k === 12) noise(t, 0.16, 0.35, 1500);          // clap
+  if (k % 4 === 2) noise(t, 0.05, 0.18, 7000);                  // open hat
+  if (k % 2 === 1) noise(t, 0.025, 0.07, 9000);                 // tick
+  if (k === 0 || k === 6 || k === 10) tone("sawtooth", mtof(BASS[bar]), t, 0.3, 0.22, 420);
+  if (k % 2 === 0) {                                            // arp
+    var n = ch[[0,1,2,1,2,1,0,1][k / 2]] + 12;
+    tone("triangle", mtof(n), t, 0.22, 0.13, 3200);
+  }
+  if (k === 0) ch.forEach(function (n) { tone("sine", mtof(n), t, SPS * 15, 0.07, 1400); }); // pad
+}
+function sched() { while (nextT < ac.currentTime + 0.2) { playStep(step, nextT); nextT += SPS; step = (step + 1) % 64; } }
+function startMusic() {
+  try {
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0.55; master.connect(ac.destination);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    ac.resume();
+    nextT = ac.currentTime + 0.1; step = 0;
+    clearInterval(timer); timer = setInterval(sched, 30);
+    on = true; document.body.classList.add("playing");
+    document.getElementById("muteLabel").textContent = "Music on";
+  } catch (e) { on = false; }
+}
+function stopMusic() {
+  clearInterval(timer); on = false; document.body.classList.remove("playing");
+  if (ac) ac.suspend();
+  document.getElementById("muteLabel").textContent = "Music off";
+}
+
+var PASSWORD = "slay queen", tries = 0, shown = 0;
+var HINTS = [
+  "Two words. What you do to every look, and what you are the moment you walk in.",
+  "The first word is what everyone says when you nail an outfit. It rhymes with “day”.",
+  "The second word is royal. Think of a crown, the opposite of king.",
+  "Last one, no cap: it’s the comment your group chat drops under every fit pic you post. 💅 + 👑"
+];
+function showHint() {
+  if (shown >= HINTS.length) return;
+  var p = document.createElement("p"); p.className = "hint";
+  p.textContent = "Hint " + (shown + 1) + ": " + HINTS[shown];
+  document.getElementById("hints").appendChild(p); shown++;
+  var b = document.getElementById("hintBtn");
+  if (shown >= HINTS.length) b.hidden = true; else b.textContent = "Still not clear? Another hint";
+}
+function clean(s) { return String(s).toLowerCase().replace(/[^a-z]/g, ""); }
+function tryEnter() {
+  var box = document.getElementById("pw");
+  if (clean(box.value) === clean(PASSWORD)) {
+    document.getElementById("err").textContent = "";
+    document.getElementById("gate").classList.add("gone");
+    var m = document.getElementById("mute"); m.hidden = false;
+    startMusic(); burst(90);
+    return;
+  }
+  tries++;
+  document.getElementById("err").textContent = "Not on the guest list. Try again.";
+  var t = document.querySelector(".ticket");
+  t.classList.remove("shake"); void t.offsetWidth; t.classList.add("shake");
+  if (tries >= 2 && shown === 0) showHint();
+  box.select();
+}
+document.getElementById("enter").addEventListener("click", tryEnter);
+document.getElementById("pw").addEventListener("keydown", function (e) { if (e.key === "Enter") tryEnter(); });
+document.getElementById("hintBtn").addEventListener("click", showHint);
+document.getElementById("mute").addEventListener("click", function () { on ? stopMusic() : startMusic(); });
+
+/* ===== Secret message ===== */
+var typing = false, typeTimer = null;
+function fillAll() {
+  var box = document.getElementById("msg"); box.innerHTML = "";
+  PARAGRAPHS.forEach(function (p) { var e = document.createElement("p"); e.textContent = p.replace("{name}", NAME); box.appendChild(e); });
+  var s = document.createElement("p"); s.className = "sign"; s.textContent = "— " + SIGNED_BY; box.appendChild(s);
+}
+function typeMessage() {
+  var box = document.getElementById("msg"); box.innerHTML = "";
+  var lines = PARAGRAPHS.map(function (p) { return p.replace("{name}", NAME); }).concat(["— " + SIGNED_BY]);
+  var li = 0, ci = 0, el = null; typing = true;
+  function next() {
+    if (!typing) return;
+    if (li >= lines.length) { typing = false; return; }
+    if (!el) { el = document.createElement("p"); if (li === lines.length - 1) el.className = "sign"; el.classList.add("caret"); box.appendChild(el); }
+    el.textContent = lines[li].slice(0, ++ci);
+    if (ci >= lines[li].length) { el.classList.remove("caret"); li++; ci = 0; el = null; typeTimer = setTimeout(next, 650); }
+    else typeTimer = setTimeout(next, 26);
+  }
+  next();
+}
+var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.getElementById("openPass").addEventListener("click", function () {
+  this.hidden = true;
+  var c = document.getElementById("cover"); c.classList.add("show");
+  burst(120);
+  if (reduceMotion) fillAll(); else typeMessage();
+  c.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+});
+document.getElementById("skip").addEventListener("click", function () {
+  typing = false; clearTimeout(typeTimer); fillAll(); this.hidden = true;
+});
+
+/* ===== Coupons ===== */
+Array.prototype.forEach.call(document.querySelectorAll(".coupon"), function (b) {
+  b.addEventListener("click", function () {
+    b.classList.toggle("used");
+    b.querySelector("small").textContent = b.classList.contains("used") ? "Redeemed" : "Tap to redeem";
+    if (b.classList.contains("used")) burst(40);
+  });
+});
+
+/* ===== Confetti ===== */
+var cv = document.getElementById("fx"), cx = cv.getContext("2d"), parts = [], raf = null;
+var COLORS = ["#ff2e97", "#00f0ff", "#9d4edd", "#ffc857", "#ffffff"];
+function size() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
+size(); addEventListener("resize", size);
+function burst(n) {
+  if (reduceMotion) return;
+  for (var i = 0; i < n; i++) {
+    parts.push({ x: innerWidth / 2, y: innerHeight * 0.45, vx: (Math.random() - .5) * 16, vy: -Math.random() * 14 - 3,
+      r: Math.random() * 5 + 3, c: COLORS[(Math.random() * COLORS.length) | 0], life: 110 + Math.random() * 50, rot: Math.random() * 6 });
+  }
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+function tick() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(function (p) { return p.life > 0; });
+  parts.forEach(function (p) {
+    p.vy += 0.35; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.life--; p.rot += 0.2;
+    cx.save(); cx.translate(p.x * devicePixelRatio, p.y * devicePixelRatio); cx.rotate(p.rot);
+    cx.globalAlpha = Math.min(1, p.life / 40); cx.fillStyle = p.c; cx.shadowColor = p.c; cx.shadowBlur = 10;
+    cx.fillRect(-p.r, -p.r / 2, p.r * 2 * devicePixelRatio / 2, p.r * devicePixelRatio / 1.4); cx.restore();
+  });
+  raf = parts.length ? requestAnimationFrame(tick) : null;
+}
+
+/* ===== Encore ===== */
+var ENCORES = [
+  "Another year, another sold-out show.",
+  "The crowd is still chanting your name.",
+  "Plot twist: the best set is yet to come.",
+  "Cue the lights. This one’s all yours."
+];
+var ei = 0;
+document.getElementById("encore").addEventListener("click", function () {
+  document.getElementById("after").textContent = ENCORES[ei++ % ENCORES.length];
+  burst(160);
+});
+</script>
+</body>
+</html>
